@@ -11,9 +11,10 @@
     <RootNamespace>Tobey.FileTree</RootNamespace>
     <BepInExPluginGuid>$(RootNamespace)</BepInExPluginGuid>
     <Copyright>Copyright © Tobey Blaber 2023</Copyright>
-    <Configurations>Release</Configurations>
+    <Company>https://github.com/toebeann/Tobey.FileTree</Company>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <Configurations>Release</Configurations>
     <DebugType>none</DebugType>
   </PropertyGroup>
 
