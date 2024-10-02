@@ -43,17 +43,17 @@ public class FileTree : BaseUnityPlugin
                 description: "Case-insensitive list of whitelisted directories, separated by commas.",
                 tags: new[] { new ConfigurationManagerAttributes { IsAdvanced = true } }));
 
-        enabledConfig.SettingChanged += _enabled_SettingChanged;
-        _enabled_SettingChanged(this, null);
+        Enabled_SettingChanged(this, null);
+        enabledConfig.SettingChanged += Enabled_SettingChanged;
     }
 
-    private void _enabled_SettingChanged(object _, System.EventArgs __) => enabled = Enabled;
+    private void Enabled_SettingChanged(object _, System.EventArgs __) => enabled = Enabled;
 
     private void OnDestroy()
     {
         if (enabledConfig is not null)
         {
-            enabledConfig.SettingChanged -= _enabled_SettingChanged;
+            enabledConfig.SettingChanged -= Enabled_SettingChanged;
         }
     }
 
