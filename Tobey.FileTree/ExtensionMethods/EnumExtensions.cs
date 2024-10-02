@@ -6,7 +6,7 @@ internal static class EnumExtensions
 {
     public static bool HasFlag<T>(this T @enum, T flag) where T : unmanaged, Enum
     {
-        var hasFlagInternal = Traverse.Create(@enum).Method("HasFlag", flag);
+        var hasFlagInternal = Traverse.Create(@enum).OptionalMethod("HasFlag", flag);
         if (hasFlagInternal.MethodExists())
         {   // use internal .NET HasFlag method if it exists
             return hasFlagInternal.GetValue<bool>();
