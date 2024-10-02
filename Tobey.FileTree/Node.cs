@@ -42,7 +42,7 @@ public class Node
         Name = System.IO.Path.GetFileName(Path);
         Parent = null;
 
-        exclude ??= Enumerable.Empty<string>();
+        exclude ??= [];
         exclude = exclude.Select(x => x.ToLowerInvariant());
 
         Children = GetChildren(exclude);
@@ -54,7 +54,7 @@ public class Node
         Name = System.IO.Path.GetFileName(Path);
         Parent = parent;
 
-        exclude ??= Enumerable.Empty<string>();
+        exclude ??= [];
         exclude = exclude.Select(x => x.ToLowerInvariant());
 
         Children = GetChildren(exclude);
@@ -65,15 +65,15 @@ public class Node
         Path = null;
         Name = name;
         Parent = parent;
-        Children = new();
+        Children = [];
     }
 
     private List<Node> GetChildren(IEnumerable<string> exclude)
     {
-        if (IsFile) return new();
+        if (IsFile) return [];
 
         if (exclude.Contains(Name.ToLowerInvariant()))
-            return new List<Node> { new("(contents not shown)", this) };
+            return [new("(contents not shown)", this)];
 
         return Directory.GetDirectories(Path)
             .Concat(Directory.GetFiles(Path)

@@ -22,7 +22,7 @@ public class FileTree : BaseUnityPlugin
     private IEnumerable<string> WhitelistDirs => whitelistDirsConfig switch
     {
         { Value: string s } => s.Split(',').Select(s => s.Trim().ToLowerInvariant()),
-        _ => Enumerable.Empty<string>()
+        _ => []
     };
 
     private void Awake()
