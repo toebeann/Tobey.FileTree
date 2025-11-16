@@ -4,39 +4,43 @@
     <TargetFramework>net35</TargetFramework>
     <AssemblyName>Tobey.FileTree</AssemblyName>
     <Description>A configurable BepInEx plugin which logs the file tree for troubleshooting.</Description>
-    <Version>1.0.1</Version>
+    <Product>File Tree</Product>
+    <Version>1.0.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-    <Product>File Tree</Product>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
     <RootNamespace>Tobey.FileTree</RootNamespace>
-    <BepInExPluginGuid>$(RootNamespace)</BepInExPluginGuid>
+    <AssemblyName>Tobey.FileTree</AssemblyName>
+    <BepInExPluginGuid>$(AssemblyName)</BepInExPluginGuid>
     <Copyright>Copyright © Tobey Blaber 2023</Copyright>
     <Company>https://github.com/toebeann/Tobey.FileTree</Company>
     <Configurations>Release</Configurations>
     <DebugType>none</DebugType>
   </PropertyGroup>
 
-  <Target Name="CleanZip" AfterTargets="AfterClean">
-    <Delete Files="..\bin\$(RootNamespace).zip;..\bin\zip\BepInEx\plugins\Tobey\$(Product)\$(TargetFileName)" />
+  <Target Name="ZipClean" AfterTargets="AfterClean">
+    <Delete Files="..\bin\$(RootNamespace).Mono.zip;$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\$(TargetFileName)" />
   </Target>
 
-  <Target Name="BuildZip" AfterTargets="AfterBuild">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin\zip\BepInEx\plugins\Tobey\$(Product)\" />
-    <ZipDirectory SourceDirectory="..\bin\zip\" DestinationFile="..\bin\$(RootNamespace).zip" Overwrite="true" />
+  <Target Name="ZipBuild" AfterTargets="AfterBuild">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\" />
+    <MakeDir Directories="..\bin" Condition="!Exists('..\bin')" />
+    <ZipDirectory SourceDirectory="$(OutputPath)\zip\" DestinationFile="..\bin\$(RootNamespace).Mono.zip" Overwrite="true" />
   </Target>
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="ByteSize" Version="1.3.0" />
-    <PackageReference Include="Fody" Version="6.7.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Fody" Version="6.7.0" PrivateAssets="all" />
     <PackageReference Include="ILMerge.Fody" Version="1.24.0" PrivateAssets="all" />
     <PackageReference Include="SymbolicLinkSupport-fork" Version="1.2.2" />
-    <PackageReference Include="UnityEngine.Modules" Version="5.6.0" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="5.6.0" PrivateAssets="all" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -90,4 +94,6 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  
+  <Import Project="..\Tobey.FileTree.Shared\Tobey.FileTree.Shared.projitems" Label="Shared" />
 </Project>

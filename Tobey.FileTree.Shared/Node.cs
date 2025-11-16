@@ -1,14 +1,17 @@
 ﻿using BepInEx;
 using ByteSizeLib;
+using MonoMod.Utils;
+#if !NET6_0_OR_GREATER
 using SymbolicLinkSupport;
+#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace Tobey.FileTree;
 using ExtensionMethods;
+
 public class Node
 {
     public readonly string Path;
@@ -26,7 +29,9 @@ public class Node
             {
                 return
                     Path is not null &&
-                    Application.platform == RuntimePlatform.WindowsPlayer &&
+#if !NET6_0_OR_GREATER
+                    PlatformHelper.Is(Platform.Windows) &&
+#endif
                     new FileInfo(Path).IsSymbolicLink();
             }
             catch

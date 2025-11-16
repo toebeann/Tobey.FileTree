@@ -1,12 +1,23 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+#if IL2CPP
+using System.Threading.Tasks;
+using BaseUnityPlugin = BepInEx.Unity.IL2CPP.BasePlugin;
+using PluginInfo = Tobey.FileTree.MyPluginInfo;
+#else
 using UnityEngine;
+#endif
 
 namespace Tobey.FileTree;
+using ExtensionMethods;
+
+#if !IL2CPP
 [DisallowMultipleComponent]
+#endif
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class FileTree : BaseUnityPlugin
 {
@@ -25,7 +36,11 @@ public class FileTree : BaseUnityPlugin
         _ => []
     };
 
+#if IL2CPP
+    public override void Load()
+#else
     private void Awake()
+#endif
     {
         enabledConfig = Config.Bind(
             section: "General",
@@ -33,7 +48,7 @@ public class FileTree : BaseUnityPlugin
             defaultValue: true,
             configDescription: new(
                 description: "When enabled, the plugin will log the file tree to the console.",
-                tags: new[] { new ConfigurationManagerAttributes { IsAdvanced = true } }));
+                tags: [new ConfigurationManagerAttributes { IsAdvanced = true }]));
 
         whitelistDirsConfig = Config.Bind(
             section: "General",
@@ -41,29 +56,55 @@ public class FileTree : BaseUnityPlugin
             defaultValue: "BepInEx",
             configDescription: new(
                 description: "Case-insensitive list of whitelisted directories, separated by commas.",
-                tags: new[] { new ConfigurationManagerAttributes { IsAdvanced = true } }));
+                tags: [new ConfigurationManagerAttributes { IsAdvanced = true }]));
 
         Enabled_SettingChanged(this, null);
         enabledConfig.SettingChanged += Enabled_SettingChanged;
     }
 
-    private void Enabled_SettingChanged(object _, System.EventArgs __) => enabled = Enabled;
+    private void Enabled_SettingChanged(object _, EventArgs __)
+    {
+#if IL2CPP
+        if (Enabled) Run();
+#else
+        enabled = Enabled;
+#endif
+    }
 
+#if IL2CPP
+    public override bool Unload()
+#else
     private void OnDestroy()
+#endif
     {
         if (enabledConfig is not null)
         {
             enabledConfig.SettingChanged -= Enabled_SettingChanged;
         }
+
+#if IL2CPP
+        return true;
+#endif
     }
 
+#if IL2CPP
+    private void Run() => Task.Run(() =>
+#else
     private void OnEnable() => ThreadingHelper.Instance.StartAsyncInvoke(() =>
+#endif
     {
-        var excludeDirs = Directory.GetDirectories(Paths.GameRootPath)
+        var rootPath = new FileInfo(Paths.GameRootPath).Resolve().FullName;
+
+        var excludeDirs = Directory.GetDirectories(rootPath)
             .Select(dir => Path.GetFileName(dir).ToLowerInvariant())
             .Where(dir => !WhitelistDirs.Contains(dir));
 
-        var root = new Node(Paths.GameRootPath, excludeDirs);
+#if IL2CPP
+        return new Node(rootPath, excludeDirs);
+    }).ContinueWith(root => root.Result.PrettyPrint(Log.LogMessage));
+#else
+    var root = new Node(rootPath, excludeDirs);
         return () => root.PrettyPrint(Logger.LogMessage);
     });
+#endif
 }

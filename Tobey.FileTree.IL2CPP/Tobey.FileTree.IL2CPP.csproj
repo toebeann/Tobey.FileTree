@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>Tobey.FileTree.IL2CPP</AssemblyName>
+    <Description>A configurable BepInEx plugin which logs the file tree for troubleshooting.</Description>
+    <Product>File Tree</Product>
+    <Version>1.0.2</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json;
+      https://pkgs.dev.azure.com/IllusionMods/Nuget/_packaging/IllusionMods/nuget/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <RootNamespace>Tobey.FileTree</RootNamespace>
+    <AssemblyName>Tobey.FileTree</AssemblyName>
+    <BepInExPluginGuid>$(AssemblyName)</BepInExPluginGuid>
+    <Copyright>Copyright © Tobey Blaber 2023</Copyright>
+    <Company>https://github.com/toebeann/Tobey.FileTree</Company>
+    <Configurations>Release</Configurations>
+    <DebugType>none</DebugType>
+    <DefineConstants>$(DefineConstants);IL2CPP</DefineConstants>
+  </PropertyGroup>
+
+  <Target Name="ZipClean" AfterTargets="AfterClean">
+    <Delete Files="..\bin\$(RootNamespace).IL2CPP.zip;$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\$(TargetFileName)" />
+  </Target>
+
+  <Target Name="ZipBuild" AfterTargets="AfterBuild">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\" />
+    <MakeDir Directories="..\bin" Condition="!Exists('..\bin')" />
+    <ZipDirectory SourceDirectory="$(OutputPath)\zip\" DestinationFile="..\bin\$(RootNamespace).IL2CPP.zip" Overwrite="true" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" PrivateAssets="all" />
+    <PackageReference Include="ByteSize" Version="2.1.2" PrivateAssets="all" IncludeAssets="compile" />
+    <PackageReference Include="Costura.Fody" Version="6.0.0" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Import Project="..\Tobey.FileTree.Shared\Tobey.FileTree.Shared.projitems" Label="Shared" />
+</Project>
