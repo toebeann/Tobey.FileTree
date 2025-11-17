@@ -101,10 +101,10 @@ public class FileTree : BaseUnityPlugin
 
 #if IL2CPP
         return new Node(rootPath, excludeDirs);
-    }).ContinueWith(root => root.Result.PrettyPrint(Log.LogMessage));
+    }).ContinueWith(root => root.Result.PrettyPrint(Log.LogInfo));
 #else
     var root = new Node(rootPath, excludeDirs);
-        return () => root.PrettyPrint(Logger.LogMessage);
+        return () => root.PrettyPrint(Logger.LogInfo);
     });
 #endif
 }
