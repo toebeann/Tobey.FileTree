@@ -23,13 +23,13 @@
   </PropertyGroup>
 
   <Target Name="ZipClean" AfterTargets="AfterClean">
-    <Delete Files="..\bin\$(RootNamespace).Mono.zip;$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\$(TargetFileName)" />
+    <Delete Files="..\bin\$(RootNamespace)BepInEx5.zip;$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\$(TargetFileName)" />
   </Target>
 
   <Target Name="ZipBuild" AfterTargets="AfterBuild">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputPath)\zip\BepInEx\plugins\Tobey\$(Product)\" />
     <MakeDir Directories="..\bin" Condition="!Exists('..\bin')" />
-    <ZipDirectory SourceDirectory="$(OutputPath)\zip\" DestinationFile="..\bin\$(RootNamespace).Mono.zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(OutputPath)\zip\" DestinationFile="..\bin\$(RootNamespace)BepInEx5.zip" Overwrite="true" />
   </Target>
 
   <ItemGroup>
