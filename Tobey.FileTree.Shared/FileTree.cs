@@ -93,7 +93,7 @@ public class FileTree : BaseUnityPlugin
     private void OnEnable() => ThreadingHelper.Instance.StartAsyncInvoke(() =>
 #endif
     {
-        var rootPath = new FileInfo(Paths.GameRootPath).Resolve().FullName;
+        var rootPath = new FileInfo(Paths.GameRootPath).Resolve()?.FullName ?? Paths.GameRootPath;
 
         var excludeDirs = Directory.GetDirectories(rootPath)
             .Select(dir => Path.GetFileName(dir).ToLowerInvariant())
