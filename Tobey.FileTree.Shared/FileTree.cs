@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +22,7 @@ using ExtensionMethods;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class FileTree : BaseUnityPlugin
 {
+    private ManualLogSource LogSource;
     private ConfigEntry<bool> enabledConfig;
     private ConfigEntry<string> whitelistDirsConfig;
 
@@ -42,6 +44,12 @@ public class FileTree : BaseUnityPlugin
     private void Awake()
 #endif
     {
+#if IL2CPP
+        LogSource = Log;
+#else
+        LogSource = Logger;
+#endif
+
         enabledConfig = Config.Bind(
             section: "General",
             key: "Enabled",
@@ -98,13 +106,15 @@ public class FileTree : BaseUnityPlugin
         var excludeDirs = Directory.GetDirectories(rootPath)
             .Select(dir => Path.GetFileName(dir).ToLowerInvariant())
             .Where(dir => !WhitelistDirs.Contains(dir));
+        List<string> lines = [];
 
+        var root = new Node(rootPath, excludeDirs);
+        root.PrettyPrint(lines.Add);
 #if IL2CPP
-        return new Node(rootPath, excludeDirs);
-    }).ContinueWith(root => root.Result.PrettyPrint(Log.LogInfo));
+        lines
 #else
-    var root = new Node(rootPath, excludeDirs);
-        return () => root.PrettyPrint(Logger.LogInfo);
-    });
+        return () => lines
 #endif
+            .ForEach(LogSource.LogInfo);
+    });
 }
