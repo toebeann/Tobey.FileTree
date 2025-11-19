@@ -69,7 +69,7 @@ public sealed class FileTree : BaseUnityPlugin
         LogSource.LogInfo($"File Tree logging is {(isEnabled ? "enabled" : "disabled")}.");
 
 #if IL2CPP
-        if (isEnabled) Run();
+        if (isEnabled) OnEnable();
 #else
         enabled = isEnabled;
 #endif
@@ -91,33 +91,36 @@ public sealed class FileTree : BaseUnityPlugin
 #endif
     }
 
-#if IL2CPP
-    private void Run() => Task.Run(() =>
-#else
-    private void OnEnable() => ThreadingHelper.Instance.StartAsyncInvoke(() =>
-#endif
+    private void OnEnable()
     {
-        var rootPath = new FileInfo(Paths.GameRootPath).Resolve()?.FullName ?? Paths.GameRootPath;
-
-        var whitelistDirs = whitelistDirsConfig switch
-        {
-            { Value: string s } => s.Split(',').Select(s => s.Trim().ToLowerInvariant()),
-            _ => []
-        };
-
-        var excludeDirs = Directory.GetDirectories(rootPath)
-            .Select(dir => Path.GetFileName(dir).ToLowerInvariant())
-            .Where(dir => !whitelistDirs.Contains(dir));
-
-        List<string> lines = [];
-
-        var root = new Node(rootPath, excludeDirs);
-        root.PrettyPrint(lines.Add);
 #if IL2CPP
-        lines
+        Task.Run(() =>
 #else
-        return () => lines
+        ThreadingHelper.Instance.StartAsyncInvoke(() =>
 #endif
-            .ForEach(LogSource.LogInfo);
-    });
+        {
+            var rootPath = new FileInfo(Paths.GameRootPath).Resolve()?.FullName ?? Paths.GameRootPath;
+
+            var whitelistDirs = whitelistDirsConfig switch
+            {
+                { Value: string s } => s.Split(',').Select(s => s.Trim().ToLowerInvariant()),
+                _ => []
+            };
+
+            var excludeDirs = Directory.GetDirectories(rootPath)
+                .Select(dir => Path.GetFileName(dir).ToLowerInvariant())
+                .Where(dir => !whitelistDirs.Contains(dir));
+
+            List<string> lines = [];
+
+            var root = new Node(rootPath, excludeDirs);
+            root.PrettyPrint(lines.Add);
+#if IL2CPP
+            lines
+#else
+            return () => lines
+#endif
+                .ForEach(LogSource.LogInfo);
+        });
+    }
 }
