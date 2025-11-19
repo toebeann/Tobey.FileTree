@@ -1,138 +1,162 @@
 ﻿using BepInEx;
 using ByteSizeLib;
+#if !IL2CPP
 using MonoMod.Utils;
-#if !NET6_0_OR_GREATER
 using SymbolicLinkSupport;
 #endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tobey.FileTree.ExtensionMethods;
 
 namespace Tobey.FileTree;
-using ExtensionMethods;
-
-public class Node
+internal sealed class Node
 {
-    public readonly string Path;
-    public readonly string Name;
-    public readonly List<Node> Children;
-    public readonly Node Parent;
-    public bool IsRoot => Parent is null;
-    public bool IsDirectory => Path is not null && File.GetAttributes(Path).HasFlag(FileAttributes.Directory);
-    public bool IsFile => Path is not null && !File.GetAttributes(Path).HasFlag(FileAttributes.Directory);
-    public bool IsSymbolicLink
+    private readonly string path;
+    private readonly string name;
+    private readonly Node parent;
+    private readonly List<Node> children;
+    private readonly bool isDirectory;
+    private readonly bool isFile;
+
+    public Node(string path, IEnumerable<string> exclude)
     {
-        get
+        if (path is not null)
         {
-            try
-            {
-                return
-                    Path is not null &&
-#if !NET6_0_OR_GREATER
-                    PlatformHelper.Is(Platform.Windows) &&
-#endif
-                    new FileInfo(Path).IsSymbolicLink();
-            }
-            catch
-            {
-                return false;
-            }
+            this.path = path;
+            isDirectory = File.GetAttributes(path).HasFlag(FileAttributes.Directory);
+            isFile = !isDirectory;
         }
+
+        name = Path.GetFileName(this.path);
+
+        children = GetChildren(exclude);
     }
 
-    public Node(string path, IEnumerable<string> exclude = null)
+    private Node(string path, Node parent, IEnumerable<string> exclude)
     {
-        Path = path;
-        Name = System.IO.Path.GetFileName(Path);
-        Parent = null;
+        this.parent = parent;
 
-        exclude ??= [];
-        exclude = exclude.Select(x => x.ToLowerInvariant());
+        if (path is not null)
+        {
+            this.path = path;
+            isDirectory = File.GetAttributes(path).HasFlag(FileAttributes.Directory);
+            isFile = !isDirectory;
+        }
 
-        Children = GetChildren(exclude);
-    }
+        name = Path.GetFileName(this.path);
 
-    private Node(string path, Node parent, IEnumerable<string> exclude = null)
-    {
-        Path = path;
-        Name = System.IO.Path.GetFileName(Path);
-        Parent = parent;
-
-        exclude ??= [];
-        exclude = exclude.Select(x => x.ToLowerInvariant());
-
-        Children = GetChildren(exclude);
+        children = GetChildren(exclude);
     }
 
     private Node(string name, Node parent)
     {
-        Path = null;
-        Name = name;
-        Parent = parent;
-        Children = [];
+        this.parent = parent;
+        this.name = name;
+        children = [];
     }
 
     private List<Node> GetChildren(IEnumerable<string> exclude)
     {
-        if (IsFile) return [];
+        if (isFile) return [];
 
-        if (exclude.Contains(Name.ToLowerInvariant()))
+        if (exclude.Contains(name.ToLowerInvariant()))
             return [new("(contents not shown)", this)];
 
-        return Directory.GetDirectories(Path)
-            .Concat(Directory.GetFiles(Path)
+        return [..Directory.GetDirectories(path)
+            .Concat(Directory.GetFiles(path)
                 .Where(file => !exclude.Contains(System.IO.Path.GetFileName(file).ToLowerInvariant())))
-            .Select(p => new Node(p, this, exclude)).ToList();
-    }
-
-    public long? GetSize()
-    {
-        if (IsDirectory) return null;
-
-        try
-        {
-            return new FileInfo(Path).Resolve().Length;
-        }
-        catch
-        {
-            return null;
-        }
+            .Select(p => new Node(p, this, exclude))];
     }
 
     public void PrettyPrint(Action<string> printer, string indent = null, bool last = false)
     {
         indent ??= string.Empty;
         string output = indent;
-        if (!IsRoot)
+
+        if (parent is not null)
         {
             output += last
                 ? @"\-- "
                 : "|-- ";
         }
 
-        var suffix = string.Join(" ", new[] {
-            GetSize() is long size ? $"[{ByteSize.FromBytes(size):0.##}]" : null,
-            IsSymbolicLink ? "[symlink]" : null,
-        }.Where(s => s is not null).ToArray());
+        FileInfo info;
+        bool isSymbolicLink;
+        ByteSize? size;
 
-        printer.Invoke($"{output}{(IsRoot ? Path : Name)}{(suffix.IsNullOrWhiteSpace() ? string.Empty : $" {suffix}")}");
+        if (path is not null)
+        {
+            try { info = new(path); }
+            catch { info = null; }
 
-        if (!IsRoot)
+            if (info is not null)
+            {
+                try
+                {
+                    isSymbolicLink =
+#if !IL2CPP
+                        PlatformHelper.Is(Platform.Windows) &&
+#endif
+                        info.IsSymbolicLink();
+                }
+                catch { isSymbolicLink = false; }
+            }
+            else isSymbolicLink = false;
+
+            if (isFile)
+            {
+                try
+                {
+                    size = isSymbolicLink switch
+                    {
+                        true => ByteSize.FromBytes(new FileInfo(info.Resolve().FullName).Length),
+                        false => ByteSize.FromBytes(info.Length),
+                    };
+                }
+                catch
+                {
+                    size = null;
+                }
+            }
+            else size = null;
+        }
+        else
+        {
+            info = null;
+            isSymbolicLink = false;
+            size = null;
+        }
+
+        var suffix = string.Join(" ", [.. new[] {
+            size is ByteSize ? $"[{size:0.##}]" : null,
+            isSymbolicLink ? "[symlink]" : null,
+        }.Where(s => s is not null)]);
+
+        printer.Invoke($"{output}{(parent is null ? path : name)}{(suffix.IsNullOrWhiteSpace() ? string.Empty : $" {suffix}")}");
+
+        if (parent is not null)
         {
             indent += last
                 ? "    "
                 : "|   ";
         }
 
-        for (int i = 0; i < Children.Count; i++)
+        int? firstFileIndex = children.FirstOrDefault(child => child.isFile) switch
         {
-            if (i == 0 || Children[i].IsDirectory || i == Children.IndexOf(Children.FirstOrDefault(node => node.IsFile) ?? this))
+            Node file => children.IndexOf(file),
+            _ => null
+        };
+
+        for (int i = 0; i < children.Count; i++)
+        {
+            if (i == 0 || children[i].isDirectory || firstFileIndex is null || i == firstFileIndex)
             {
                 printer.Invoke($"{indent}|");
             }
 
-            Children[i].PrettyPrint(printer, indent, i == Children.Count - 1);
+            children[i].PrettyPrint(printer, indent, i == children.Count - 1);
         }
     }
 }

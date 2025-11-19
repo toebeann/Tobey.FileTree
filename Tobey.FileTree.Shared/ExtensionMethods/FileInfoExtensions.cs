@@ -1,4 +1,4 @@
-﻿#if !NET6_0_OR_GREATER
+﻿#if !IL2CPP
 using MonoMod.Utils;
 using SymbolicLinkSupport;
 #endif
@@ -7,10 +7,10 @@ using System.IO;
 namespace Tobey.FileTree.ExtensionMethods;
 internal static class FileInfoExtensions
 {
-    public static FileInfo Resolve(this FileInfo info)
+    public static FileSystemInfo Resolve(this FileInfo info)
     {
-#if NET6_0_OR_GREATER
-        return new(info.ResolveLinkTarget(true).FullName);
+#if IL2CPP
+        return info.ResolveLinkTarget(true);
 #else
         if (!PlatformHelper.Is(Platform.Windows))
         {
@@ -32,7 +32,7 @@ internal static class FileInfoExtensions
 #endif
     }
 
-#if NET6_0_OR_GREATER
-    public static bool IsSymbolicLink(this FileInfo info) => info.LinkTarget is not null;
+#if IL2CPP
+    public static bool IsSymbolicLink(this FileSystemInfo info) => info.LinkTarget is not null;
 #endif
 }

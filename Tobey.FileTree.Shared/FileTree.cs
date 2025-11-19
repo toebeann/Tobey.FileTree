@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tobey.FileTree.ExtensionMethods;
 #if IL2CPP
 using System.Threading.Tasks;
 using BaseUnityPlugin = BepInEx.Unity.IL2CPP.BasePlugin;
@@ -14,29 +15,16 @@ using UnityEngine;
 #endif
 
 namespace Tobey.FileTree;
-using ExtensionMethods;
 
 #if !IL2CPP
 [DisallowMultipleComponent]
 #endif
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public class FileTree : BaseUnityPlugin
+public sealed class FileTree : BaseUnityPlugin
 {
     private ManualLogSource LogSource;
     private ConfigEntry<bool> enabledConfig;
     private ConfigEntry<string> whitelistDirsConfig;
-
-    private bool Enabled => enabledConfig switch
-    {
-        { Value: true } => true,
-        _ => false
-    };
-
-    private IEnumerable<string> WhitelistDirs => whitelistDirsConfig switch
-    {
-        { Value: string s } => s.Split(',').Select(s => s.Trim().ToLowerInvariant()),
-        _ => []
-    };
 
 #if IL2CPP
     public override void Load()
@@ -72,10 +60,18 @@ public class FileTree : BaseUnityPlugin
 
     private void Enabled_SettingChanged(object _, EventArgs __)
     {
+        var isEnabled = enabledConfig switch
+        {
+            { Value: true } => true,
+            _ => false
+        };
+
+        LogSource.LogInfo($"File Tree logging is {(isEnabled ? "enabled" : "disabled")}.");
+
 #if IL2CPP
-        if (Enabled) Run();
+        if (isEnabled) Run();
 #else
-        enabled = Enabled;
+        enabled = isEnabled;
 #endif
     }
 
@@ -103,9 +99,16 @@ public class FileTree : BaseUnityPlugin
     {
         var rootPath = new FileInfo(Paths.GameRootPath).Resolve()?.FullName ?? Paths.GameRootPath;
 
+        var whitelistDirs = whitelistDirsConfig switch
+        {
+            { Value: string s } => s.Split(',').Select(s => s.Trim().ToLowerInvariant()),
+            _ => []
+        };
+
         var excludeDirs = Directory.GetDirectories(rootPath)
             .Select(dir => Path.GetFileName(dir).ToLowerInvariant())
-            .Where(dir => !WhitelistDirs.Contains(dir));
+            .Where(dir => !whitelistDirs.Contains(dir));
+
         List<string> lines = [];
 
         var root = new Node(rootPath, excludeDirs);
