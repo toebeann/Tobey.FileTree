@@ -5,34 +5,41 @@ using SymbolicLinkSupport;
 using System.IO;
 
 namespace Tobey.FileTree.ExtensionMethods;
+
 internal static class FileInfoExtensions
 {
-    public static FileSystemInfo Resolve(this FileInfo info)
+    extension(FileInfo info)
     {
+        public FileSystemInfo Resolve()
+        {
 #if IL2CPP
-        return info.ResolveLinkTarget(true);
+            return info.ResolveLinkTarget(true);
 #else
-        if (!PlatformHelper.Is(Platform.Windows))
-        {
-            return info;
-        }
-
-        try
-        {
-            while (info.IsSymbolicLink())
+            if (!PlatformHelper.Is(Platform.Windows))
             {
-                info = new(info.GetSymbolicLinkTarget());
+                return info;
             }
-            return info;
-        }
-        catch
-        {
-            return info;
-        }
+
+            try
+            {
+                while (info.IsSymbolicLink())
+                {
+                    info = new(info.GetSymbolicLinkTarget());
+                }
+                return info;
+            }
+            catch
+            {
+                return info;
+            }
 #endif
+        }
     }
 
 #if IL2CPP
-    public static bool IsSymbolicLink(this FileSystemInfo info) => info.LinkTarget is not null;
+    extension(FileSystemInfo info)
+    {
+        public bool IsSymbolicLink() => info.LinkTarget is not null;
+    }
 #endif
 }
