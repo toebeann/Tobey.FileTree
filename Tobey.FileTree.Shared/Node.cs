@@ -11,6 +11,7 @@ using System.Linq;
 using Tobey.FileTree.ExtensionMethods;
 
 namespace Tobey.FileTree;
+
 internal sealed class Node
 {
     private readonly string path;

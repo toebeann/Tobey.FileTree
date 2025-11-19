@@ -2,6 +2,7 @@
 using System;
 
 namespace Tobey.FileTree.Utilties;
+
 internal static class TraverseHelper
 {
     public static T SuppressHarmonyWarnings<T>(Func<T> fn)
