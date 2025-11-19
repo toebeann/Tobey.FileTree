@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="Tobey.FileTree.IL2CPP/Tobey.FileTree.IL2CPP.csproj" />
+  <Project Path="Tobey.FileTree.Shared/Tobey.FileTree.Shared.shproj" />
+  <Project Path="Tobey.FileTree/Tobey.FileTree.csproj" />
+</Solution>
