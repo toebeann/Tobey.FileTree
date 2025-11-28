@@ -21,7 +21,7 @@
     <Company>https://github.com/toebeann/Tobey.FileTree</Company>
     <Configurations>Release</Configurations>
     <DebugType>none</DebugType>
-    <DefineConstants>$(DefineConstants);IL2CPP</DefineConstants>
+    <DefineConstants>IL2CPP</DefineConstants>
   </PropertyGroup>
 
   <Target Name="ZipClean" AfterTargets="AfterClean">
