@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net35</TargetFramework>
-    <AssemblyName>Tobey.FileTree</AssemblyName>
     <Description>A configurable BepInEx plugin which logs the file tree for troubleshooting.</Description>
     <Product>File Tree</Product>
     <Version>2.0.0</Version>
@@ -16,7 +15,6 @@
     </RestoreAdditionalProjectSources>
     <RootNamespace>Tobey.FileTree</RootNamespace>
     <AssemblyName>Tobey.FileTree</AssemblyName>
-    <BepInExPluginGuid>$(AssemblyName)</BepInExPluginGuid>
     <Copyright>Copyright © Tobey Blaber 2023</Copyright>
     <Company>https://github.com/toebeann/Tobey.FileTree</Company>
     <Configurations>Release</Configurations>
