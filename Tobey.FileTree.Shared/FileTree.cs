@@ -75,10 +75,6 @@ public sealed class FileTree : BaseUnityPlugin
         {
             setting.SetValue(isEnabled);
         }
-        else
-        {
-            if (isEnabled) OnEnable();
-        }
 #endif
     }
 
@@ -98,8 +94,12 @@ public sealed class FileTree : BaseUnityPlugin
 #endif
     }
 
+    private bool ran;
     private void OnEnable()
     {
+        if (ran) Config.Reload();
+        ran = true;
+
 #if IL2CPP
         Task.Run(() =>
 #else
