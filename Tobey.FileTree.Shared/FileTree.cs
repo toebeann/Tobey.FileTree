@@ -9,7 +9,6 @@ using Tobey.FileTree.ExtensionMethods;
 #if IL2CPP
 using System.Threading.Tasks;
 using BaseUnityPlugin = BepInEx.Unity.IL2CPP.BasePlugin;
-using PluginInfo = Tobey.FileTree.MyPluginInfo;
 #else
 using HarmonyLib;
 using UnityEngine;
@@ -20,7 +19,7 @@ namespace Tobey.FileTree;
 #if !IL2CPP
 [DisallowMultipleComponent]
 #endif
-[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public sealed class FileTree : BaseUnityPlugin
 {
     private ManualLogSource LogSource;
