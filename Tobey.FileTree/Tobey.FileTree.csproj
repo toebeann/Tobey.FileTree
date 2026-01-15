@@ -4,7 +4,7 @@
     <TargetFramework>net35</TargetFramework>
     <Description>A configurable BepInEx plugin which logs the file tree for troubleshooting.</Description>
     <Product>File Tree</Product>
-    <Version>2.0.1</Version>
+    <Version>2.0.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
