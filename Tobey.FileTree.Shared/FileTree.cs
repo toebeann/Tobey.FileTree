@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using BaseUnityPlugin = BepInEx.Unity.IL2CPP.BasePlugin;
 using PluginInfo = Tobey.FileTree.MyPluginInfo;
 #else
+using HarmonyLib;
 using UnityEngine;
 #endif
 
@@ -67,11 +68,18 @@ public sealed class FileTree : BaseUnityPlugin
         };
 
         LogSource.LogInfo($"File Tree logging is {(isEnabled ? "enabled" : "disabled")}.");
-
 #if IL2CPP
         if (isEnabled) OnEnable();
 #else
-        enabled = isEnabled;
+        var setting = Traverse.Create(this).Property("enabled");
+        if (setting.PropertyExists() && setting.GetValueType() == typeof(bool))
+        {
+            setting.SetValue(isEnabled);
+        }
+        else
+        {
+            if (isEnabled) OnEnable();
+        }
 #endif
     }
 
