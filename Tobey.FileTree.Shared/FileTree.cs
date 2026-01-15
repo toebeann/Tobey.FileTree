@@ -100,6 +100,8 @@ public sealed class FileTree : BaseUnityPlugin
 
     private void OnEnable()
     {
+        Config.Reload();
+
 #if IL2CPP
         Task.Run(() =>
 #else
